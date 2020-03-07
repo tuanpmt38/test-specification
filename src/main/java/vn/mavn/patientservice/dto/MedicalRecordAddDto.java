@@ -1,11 +1,8 @@
 package vn.mavn.patientservice.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import java.util.Date;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,17 +26,4 @@ public class MedicalRecordAddDto {
   private PatientDto patientDto;
   private Long clinicBranchId;
   private Long examinationTimes;
-  @JsonFormat(pattern = "dd-MM-yyyy HH:mm")
-  @NotNull(message = "err.medical-records.consulting-date-is-mandatory")
-  @Setter(AccessLevel.NONE)
-  @Getter(AccessLevel.NONE)
-  private Date examinationDate;
-
-  public void setBillDate(Date examinationDate) {
-    this.examinationDate = new Date(examinationDate.getTime());
-  }
-
-  public Date getExaminationDate() {
-    return this.examinationDate = new Date(examinationDate.getTime());
-  }
 }
