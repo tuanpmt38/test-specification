@@ -166,7 +166,6 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
       medicalRecord = mapMedicalRecordForEmp(medicalRecordAddDto, userId, userCode,
           patient.getId());
     }
-    setExaminationDateManually(medicalRecordAddDto.getExaminationDate(), medicalRecord);
     medicalRecord.setIsActive(true);
     medicalRecordRepository.save(medicalRecord);
     return medicalRecord;
@@ -434,7 +433,6 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     medicalRecordRepository.save(medicalRecord);
     setPaymentInfo(medicalRecord, data.getTotalAmount(), data.getTransferAmount(),
         data.getCodAmount());
-    setExaminationDateManually(data.getExaminationDate(), medicalRecord);
     return medicalRecord;
   }
 
