@@ -2,10 +2,11 @@ package vn.mavn.patientservice.service.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -165,6 +166,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
       medicalRecord = mapMedicalRecordForEmp(medicalRecordAddDto, userId, userCode,
           patient.getId());
     }
+    setExaminationDateManually(medicalRecordAddDto.getExaminationDate(), medicalRecord);
     medicalRecord.setIsActive(true);
     medicalRecordRepository.save(medicalRecord);
     return medicalRecord;
@@ -206,8 +208,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
   }
 
   @Override
-  public MedicalRecord addForEmpClinic(
-      MedicalRecordAddForEmpClinicDto data) {
+  public MedicalRecord addForEmpClinic(MedicalRecordAddForEmpClinicDto data) {
     //TODO: validation data
     validationData(data.getAdvertisingSourceId(),
         data.getClinicId(), data.getConsultingStatusCode(), data.getClinicBranchId());
@@ -253,7 +254,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
       mappingMedicalRecordMedicine(data.getMedicineDtos(),
           medicalRecord.getId());
     }
-
+    setExaminationDateManually(data.getExaminationDate(), medicalRecord);
     return medicalRecord;
   }
 
@@ -323,6 +324,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     medicalRecord.setExaminationTimes(data.getExaminationTimes());
     setPaymentInfo(medicalRecord, data.getTotalAmount(), data.getCodAmount(),
         data.getTransferAmount());
+    setExaminationDateManually(data.getExaminationDate(), medicalRecord);
     medicalRecordRepository.save(medicalRecord);
 
     //vi thuoc cua loai benh + so luong
@@ -330,30 +332,6 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
       mappingMedicalRecordMedicine(data.getMedicineDtos(), medicalRecord.getId());
     }
     return medicalRecord;
-  }
-
-  private void savePatientPathology(Long patientId, List<Long> pathologyIds) {
-    List<PatientPathology> existedPatientPathologies = patientPathologyRepository
-        .findAllByPatientId(patientId);
-    patientPathologyRepository.deleteAll(existedPatientPathologies);
-    if (!CollectionUtils.isEmpty(pathologyIds)) {
-      List<PatientPathology> patientPathologies = new ArrayList<>();
-      pathologyIds.forEach(pathologyId -> {
-        patientPathologies.add(
-            PatientPathology.builder().patientId(patientId).pathologyId(pathologyId)
-                .build());
-      });
-      patientPathologyRepository.saveAll(patientPathologies);
-    }
-  }
-
-  private void validatePathology(List<Long> pathologyIds) {
-    if (!CollectionUtils.isEmpty(pathologyIds)) {
-      pathologyIds.forEach(pathologyId -> {
-        pathologyRepository.findById(pathologyId).orElseThrow(() -> new NotFoundException(
-            Arrays.asList("err.medical-records.pathology-not-found")));
-      });
-    }
   }
 
   /**
@@ -454,6 +432,9 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     medicalRecord.setIsActive(true);
     medicalRecord.setExaminationTimes(data.getExaminationTimes());
     medicalRecordRepository.save(medicalRecord);
+    setPaymentInfo(medicalRecord, data.getTotalAmount(), data.getTransferAmount(),
+        data.getCodAmount());
+    setExaminationDateManually(data.getExaminationDate(), medicalRecord);
     return medicalRecord;
   }
 
@@ -657,4 +638,36 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     medicalRecord.setCodAmount(
         codAmount != null ? codAmount : BigDecimal.ZERO);
   }
+
+  private void savePatientPathology(Long patientId, List<Long> pathologyIds) {
+    List<PatientPathology> existedPatientPathologies = patientPathologyRepository
+        .findAllByPatientId(patientId);
+    patientPathologyRepository.deleteAll(existedPatientPathologies);
+    if (!CollectionUtils.isEmpty(pathologyIds)) {
+      List<PatientPathology> patientPathologies = new ArrayList<>();
+      pathologyIds.forEach(pathologyId -> {
+        patientPathologies.add(
+            PatientPathology.builder().patientId(patientId).pathologyId(pathologyId)
+                .build());
+      });
+      patientPathologyRepository.saveAll(patientPathologies);
+    }
+  }
+
+  private void validatePathology(List<Long> pathologyIds) {
+    if (!CollectionUtils.isEmpty(pathologyIds)) {
+      pathologyIds.forEach(pathologyId -> pathologyRepository.findById(pathologyId)
+          .orElseThrow(() -> new NotFoundException(
+              Collections.singletonList("err.medical-records.pathology-not-found"))));
+    }
+  }
+
+  private void setExaminationDateManually(Date examinationDate, MedicalRecord medicalRecord) {
+    if (examinationDate != null) {
+      LocalDateTime localDateTime = LocalDateTime
+          .ofInstant(examinationDate.toInstant(), ZoneId.systemDefault());
+      medicalRecord.setExaminationDate(localDateTime);
+    }
+  }
+
 }
