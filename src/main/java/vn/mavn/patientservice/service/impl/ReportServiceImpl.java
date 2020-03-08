@@ -397,7 +397,7 @@ public class ReportServiceImpl implements ReportService {
     System.out.println("Built cell value: " + (t5 - t4));
 
     // Try to determine file's content type
-    String pattern = "MM-dd-yyyy-HH-mm-ss";
+    String pattern = "dd-MM-yyyy-HH-mm-ss";
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
     String fileName = "Du_lieu_" + simpleDateFormat.format(new Date()) + ".xlsx";
 
