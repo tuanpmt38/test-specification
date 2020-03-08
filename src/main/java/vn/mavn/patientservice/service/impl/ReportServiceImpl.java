@@ -353,7 +353,7 @@ public class ReportServiceImpl implements ReportService {
       // region Sum of amount on cash
       int cashColumnIndex = titleIndexMap.get("Tổng tiền mặt");
       Cell cashSum = sumRow.createCell(cashColumnIndex);
-      cashSum.setCellFormula("sum(U2:U" + lastRow + ")");
+      cashSum.setCellFormula("sum(U2:U" + (lastRow + 1) + ")");
       System.out.println(cashSum.getCellFormula());
       cashSum.setCellStyle(sumCellStyle);
       // endregion
@@ -361,7 +361,7 @@ public class ReportServiceImpl implements ReportService {
       // region Sum of transferred amount
       int transferredIndex = titleIndexMap.get("Chuyển khoản");
       Cell transferredSum = sumRow.createCell(transferredIndex);
-      transferredSum.setCellFormula("sum(V2:V" + lastRow + ")");
+      transferredSum.setCellFormula("sum(V2:V" + (lastRow + 1) + ")");
       System.out.println(transferredSum.getCellFormula());
       transferredSum.setCellStyle(sumCellStyle);
       // endregion
@@ -369,7 +369,7 @@ public class ReportServiceImpl implements ReportService {
       // region Sum of CODd
       int codIndex = titleIndexMap.get("CoD");
       Cell codSum = sumRow.createCell(codIndex);
-      codSum.setCellFormula("sum(W2:W" + lastRow + ")");
+      codSum.setCellFormula("sum(W2:W" + (lastRow + 1) + ")");
       System.out.println(codSum.getCellFormula());
       codSum.setCellStyle(sumCellStyle);
       // endregion
@@ -385,6 +385,12 @@ public class ReportServiceImpl implements ReportService {
       totalCell.setCellStyle(mergeCellStyle);
       //Merging cells by providing cell index
       sheet.addMergedRegion(new CellRangeAddress(lastRow + 1, lastRow + 1, 0, cashColumnIndex - 1));
+
+      // Merging cells after sum columns
+      Cell afterTotalCell = sumRow.createCell(codIndex + 1);
+      afterTotalCell.setCellStyle(mergeCellStyle);
+      sheet.addMergedRegion(
+          new CellRangeAddress(lastRow + 1, lastRow + 1, codIndex + 1, nextExtraColumn - 1));
       // endregion
     }
     long t5 = System.currentTimeMillis();
