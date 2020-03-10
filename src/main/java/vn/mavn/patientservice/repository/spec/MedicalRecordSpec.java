@@ -32,22 +32,23 @@ public class MedicalRecordSpec {
       // Filter by advisory date range
       if (data.getStartDate() != null) {
         Predicate predicate = criteriaBuilder
-            .greaterThan(root.get("advisoryDate"), data.getStartDate());
+            .greaterThanOrEqualTo(root.get("advisoryDate"), data.getStartDate());
         predicates.add(predicate);
       }
       if (data.getEndDate() != null) {
-        Predicate predicate = criteriaBuilder.lessThan(root.get("advisoryDate"), data.getEndDate());
+        Predicate predicate = criteriaBuilder
+            .lessThanOrEqualTo(root.get("advisoryDate"), data.getEndDate());
         predicates.add(predicate);
       }
 
       // Filter by examination date range
       if (data.getExaminationStartDate() != null) {
         predicates.add(criteriaBuilder
-            .greaterThan(root.get("examinationDate"), data.getExaminationStartDate()));
+            .greaterThanOrEqualTo(root.get("examinationDate"), data.getExaminationStartDate()));
       }
       if (data.getExaminationEndDate() != null) {
         predicates.add(criteriaBuilder
-            .lessThan(root.get("examinationDate"), data.getExaminationEndDate()));
+            .lessThanOrEqualTo(root.get("examinationDate"), data.getExaminationEndDate()));
       }
 
       // Filter by patients
