@@ -50,6 +50,7 @@ public class MedicalRecordDto implements Serializable {
 
     private Long id;
     private String name;
+    private String code;
     private String address;
     private Integer age;
     private String phone;
