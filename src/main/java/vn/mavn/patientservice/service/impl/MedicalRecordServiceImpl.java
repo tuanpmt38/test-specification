@@ -246,8 +246,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     }
 
     medicalRecord.setIsActive(true);
-    setPaymentInfo(medicalRecord, data.getTotalAmount(), data.getCodAmount(),
-        data.getTransferAmount());
+    setPaymentInfo(medicalRecord, data.getTotalAmount(), data.getTransferAmount(),
+        data.getCodAmount());
     medicalRecordRepository.save(medicalRecord);
     if (!CollectionUtils.isEmpty(data.getMedicineDtos())) {
       mappingMedicalRecordMedicine(data.getMedicineDtos(),
@@ -321,8 +321,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     medicalRecord.setIsActive(true);
     medicalRecord.setUpdatedBy(userId);
     medicalRecord.setExaminationTimes(data.getExaminationTimes());
-    setPaymentInfo(medicalRecord, data.getTotalAmount(), data.getCodAmount(),
-        data.getTransferAmount());
+    setPaymentInfo(medicalRecord, data.getTotalAmount(), data.getTransferAmount(),
+        data.getCodAmount());
     setExaminationDateManually(data.getExaminationDate(), medicalRecord);
     medicalRecordRepository.save(medicalRecord);
 
