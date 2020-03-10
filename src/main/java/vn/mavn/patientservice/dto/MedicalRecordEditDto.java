@@ -46,7 +46,7 @@ public class MedicalRecordEditDto {
   @Getter(AccessLevel.NONE)
   private Date examinationDate;
 
-  public void setBillDate(Date examinationDate) {
+  public void setExaminationDate(Date examinationDate) {
     this.examinationDate = new Date(examinationDate.getTime());
   }
 

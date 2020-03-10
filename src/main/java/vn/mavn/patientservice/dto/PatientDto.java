@@ -38,4 +38,5 @@ public class PatientDto {
   private Boolean isActive;
   private Long provinceCode;
   private List<Long> pathologyIds;
+  private String code;
 }
