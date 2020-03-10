@@ -19,6 +19,7 @@ public class PatientInfoDto implements Serializable {
 
   private Long id;
   private String name;
+  private String code;
   private Integer age;
   private String address;
   private String phone;

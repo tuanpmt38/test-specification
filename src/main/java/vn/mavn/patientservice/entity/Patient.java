@@ -29,6 +29,5 @@ public class Patient extends BaseIdEntity {
   private String otherPhone;
   private Boolean isActive;
   private Long provinceCode;
-
-
+  private String code;
 }
