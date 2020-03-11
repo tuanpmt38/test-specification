@@ -44,7 +44,7 @@ public class ReportServiceImpl implements ReportService {
   private static String[] columns = {"Ngày tư vấn", "Mã nhân viên tư vấn", "Loại bệnh", "Bệnh nhân",
       "Tuổi", "Địa chỉ", "Số điện thoại", "Nguồn quảng cáo", "Tình trạng bệnh", "Tình trạng tư vấn",
       "Ghi chú", "Số Zalo", "Liên hệ khác", "Ngày khám", "Phòng khám", "Cơ sở khám", "Lần khám",
-      "Số thang", "Loại thuốc", "Bài thuốc", "Tổng tiền mặt", "Chuyển khoản", "CoD", "Ghi chú"};
+      "Số thang", "Loại thuốc", "Bài thuốc", "Tiền mặt", "Chuyển khoản", "CoD", "Ghi chú"};
 
   @Autowired
   private MedicalRecordService medicalRecordService;
@@ -75,7 +75,7 @@ public class ReportServiceImpl implements ReportService {
       }
     }
     // Remove duplicate data
-    medicineHeaders = medicineHeaders.stream().distinct().collect(Collectors.toSet());
+    medicineHeaders = new HashSet<>(medicineHeaders);
     System.out.println(medicineHeaders);
 
     long t3 = System.currentTimeMillis();
