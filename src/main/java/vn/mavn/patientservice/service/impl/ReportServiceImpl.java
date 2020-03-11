@@ -351,7 +351,7 @@ public class ReportServiceImpl implements ReportService {
     if (lastRow > 1) {
       Row sumRow = sheet.createRow(lastRow + 1);
       // region Sum of amount on cash
-      int cashColumnIndex = titleIndexMap.get("Tổng tiền mặt");
+      int cashColumnIndex = titleIndexMap.get("Tiền mặt");
       Cell cashSum = sumRow.createCell(cashColumnIndex);
       cashSum.setCellFormula("sum(U2:U" + (lastRow + 1) + ")");
       System.out.println(cashSum.getCellFormula());
