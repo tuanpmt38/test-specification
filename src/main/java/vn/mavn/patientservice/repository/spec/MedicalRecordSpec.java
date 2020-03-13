@@ -25,6 +25,9 @@ public class MedicalRecordSpec {
           criteriaBuilder, root, predicates);
       predicates = equalLongValueFilter(data.getDiseaseId(), "diseaseId", criteriaBuilder, root,
           predicates);
+      predicates = equalLongValueFilter(data.getClinicBranchId(), "clinicBranchId", criteriaBuilder,
+          root,
+          predicates);
       if (StringUtils.isNotBlank(data.getUserCode())) {
         predicates.add(criteriaBuilder.equal(root.get("userCode"), data.getUserCode()));
       }

@@ -38,4 +38,5 @@ public class QueryMedicalRecordDto {
   @Positive(message = "err.common.invalid-value-of-money")
   private BigDecimal totalAmountTo;
   private Long provinceCode;
+  private Long clinicBranchId;
 }
