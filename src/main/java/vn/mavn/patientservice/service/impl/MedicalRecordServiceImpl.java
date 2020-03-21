@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ import vn.mavn.patientservice.entity.Doctor;
 import vn.mavn.patientservice.entity.MedicalRecord;
 import vn.mavn.patientservice.entity.MedicalRecordMedicine;
 import vn.mavn.patientservice.entity.Medicine;
+import vn.mavn.patientservice.entity.Pathology;
 import vn.mavn.patientservice.entity.Patient;
 import vn.mavn.patientservice.entity.PatientPathology;
 import vn.mavn.patientservice.entity.Province;
@@ -73,7 +75,6 @@ import vn.mavn.patientservice.service.MedicalRecordService;
 import vn.mavn.patientservice.util.TokenUtils;
 
 @Service
-@Transactional
 public class MedicalRecordServiceImpl implements MedicalRecordService {
 
   @Autowired
@@ -126,6 +127,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
   private PatientPathologyRepository patientPathologyRepository;
 
   @Override
+  @Transactional
   public MedicalRecord addForEmp(MedicalRecordAddDto medicalRecordAddDto) {
     //TODO: validation data
     validationData(medicalRecordAddDto.getAdvertisingSourceId(),
@@ -210,6 +212,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
   }
 
   @Override
+  @Transactional
   public MedicalRecord addForEmpClinic(MedicalRecordAddForEmpClinicDto data) {
     //TODO: validation data
     validationData(data.getAdvertisingSourceId(),
@@ -261,6 +264,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
   }
 
   @Override
+  @Transactional
   public MedicalRecord editForEmpClinic(MedicalRecordEditDto data) {
     if (data.getDiseaseId() == null) {
       throw new BadRequestException(
@@ -341,6 +345,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
    */
   @Override
   public List<MedicalRecordDto> findAllForReport(QueryMedicalRecordDto queryMedicalRecordDto) {
+    long t1 = System.currentTimeMillis();
     List<Long> patientIds = handlePatientFilters(queryMedicalRecordDto);
     if (CollectionUtils.isEmpty(patientIds)) {
       return new ArrayList<>();
@@ -364,6 +369,19 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
       Map<Long, Province> provinceMap = provinces.stream()
           .collect(Collectors.toMap(Province::getCode,
               Function.identity()));
+
+      // Get all methologies of patients
+      Set<PatientPathology> patientPathologies = patientPathologyRepository
+          .findAllByPatientIdIn(patientIds);
+      Map<Long, List<PatientPathology>> patientPathologyIdsMap = patientPathologies.stream()
+          .collect(Collectors.groupingBy(PatientPathology::getPatientId));
+      Map<Long, Set<Pathology>> patientPathologiesMap = new HashMap<>();
+      patientPathologyIdsMap.forEach((key, value) -> {
+        Set<Long> pathologyIds = value.stream().map(PatientPathology::getPathologyId)
+            .collect(Collectors.toSet());
+        patientPathologiesMap
+            .put(key, new HashSet<>(pathologyRepository.findAllById(pathologyIds)));
+      });
 
       // Get all diseases
       List<Disease> diseases = diseaseRepository.findAll();
@@ -413,6 +431,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
             medicalRecordDto,
             patientMap.get(medicalRecord.getPatientId()),
             provinceMap,
+            patientPathologiesMap,
             diseaseMap,
             allMedicines,
             advertisingSourceMap,
@@ -424,6 +443,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
         medicalRecordDtos.add(medicalRecordDto);
       });
+      System.out.println(
+          "Total fetching data time: " + ((System.currentTimeMillis() - t1) / 1000) + " (s)");
       return medicalRecordDtos.stream()
           .sorted(Comparator.comparing(MedicalRecordDto::getAdvisoryDate)).collect(
               Collectors.toList());
@@ -431,6 +452,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
   }
 
   @Override
+  @Transactional
   public MedicalRecord update(MedicalRecordEditDto data) {
     MedicalRecord medicalRecord = medicalRecordRepository.findById(data.getId())
         .orElseThrow(() -> new NotFoundException(
@@ -742,6 +764,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
       MedicalRecordDto medicalRecordDto,
       Patient patient,
       Map<Long, Province> provinceMap,
+      Map<Long, Set<Pathology>> patientPathologiesMap,
       Map<Long, Disease> diseaseMap,
       Set<Medicine> allMedicines,
       Map<Long, AdvertisingSource> advertisingSourceMap,
@@ -761,17 +784,14 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
       }
 
       //TODO: build Pathologies
-      List<Long> pathologyIds = patientPathologyRepository
-          .findAllByPatientId(medicalRecord.getPatientId()).stream()
-          .map(PatientPathology::getPathologyId)
-          .collect(Collectors.toList());
-      if (!CollectionUtils.isEmpty(pathologyIds)) {
-        List<PathologyDto> pathologies = pathologyRepository.findAllById(pathologyIds).stream()
+      Set<Pathology> pathologies = patientPathologiesMap.get(medicalRecord.getPatientId());
+      if (!CollectionUtils.isEmpty(pathologies)) {
+        List<PathologyDto> pathologieDtos = pathologies.stream()
             .map(pathology -> PathologyDto.builder()
                 .id(pathology.getId())
                 .name(pathology.getName())
                 .build()).collect(Collectors.toList());
-        patientDto.setPathologies(pathologies);
+        patientDto.setPathologies(pathologieDtos);
       }
       medicalRecordDto.setPatientDto(patientDto);
     }
