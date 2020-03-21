@@ -383,8 +383,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
       // Build map consulting status
       List<ConsultingStatus> consultingStatuses = consultingStatusRepository.findAll();
-      Map<Long, ConsultingStatus> consultingStatusMap = consultingStatuses.stream().collect(
-          Collectors.toMap(ConsultingStatus::getId, Function.identity()));
+      Map<String, ConsultingStatus> consultingStatusMap = consultingStatuses.stream().collect(
+          Collectors.toMap(ConsultingStatus::getCode, Function.identity()));
 
       // Build map clinic
       List<Clinic> clinics = clinicRepository.findAll();
@@ -745,7 +745,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
       Map<Long, Disease> diseaseMap,
       Set<Medicine> allMedicines,
       Map<Long, AdvertisingSource> advertisingSourceMap,
-      Map<Long, ConsultingStatus> consultingStatusMap,
+      Map<String, ConsultingStatus> consultingStatusMap,
       Map<Long, Clinic> clinicMap,
       Map<Long, Doctor> doctorMap,
       Map<Long, ClinicBranch> clinicBranchMap) {
@@ -785,8 +785,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
           .id(disease.getId()).name(disease.getName())
           .build();
 
-      List<MedicalRecordMedicine> medicalRecordMedicines = medicalRecordMedicineRepository.
-          findAllByMedicalRecordId(medicalRecord.getId());
+      List<MedicalRecordMedicine> medicalRecordMedicines = medicalRecordMedicineRepository
+          .findAllByMedicalRecordId(medicalRecord.getId());
 
       // Get all medicines of this medical record
       List<Long> medicineIds = medicalRecordMedicines.stream().map(
