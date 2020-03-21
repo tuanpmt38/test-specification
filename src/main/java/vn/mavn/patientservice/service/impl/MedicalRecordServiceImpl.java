@@ -7,8 +7,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
@@ -348,10 +351,77 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
       return Collections.emptyList();
     } else {
       List<MedicalRecordDto> medicalRecordDtos = new ArrayList<>();
+
+      // TODO: Turning performance
+      // Get all patients
+      Set<Patient> patients = patientRepository.findByInIn(patientIds);
+      // Build map patient with it's ID
+      Map<Long, Patient> patientMap = patients.stream().collect(Collectors.toMap(Patient::getId,
+          Function.identity()));
+
+      // Get all provinces
+      List<Province> provinces = provinceRepository.findAll();
+      Map<Long, Province> provinceMap = provinces.stream()
+          .collect(Collectors.toMap(Province::getCode,
+              Function.identity()));
+
+      // Get all diseases
+      List<Disease> diseases = diseaseRepository.findAll();
+      Map<Long, Disease> diseaseMap = diseases.stream()
+          .collect(Collectors.toMap(Disease::getId, Function.identity()));
+
+      Set<Medicine> allMedicines = new HashSet<>(medicineRepository.findAll());
+
+      // Build map advertising source
+      Set<Long> advertisingSourceIds = medicalRecords.stream()
+          .map(MedicalRecord::getAdvertisingSourceId).collect(Collectors.toSet());
+      List<AdvertisingSource> advertisingSources =
+          CollectionUtils.isEmpty(advertisingSourceIds) ? new ArrayList<>()
+              : advertisingSourceRepository.findAllById(advertisingSourceIds);
+      Map<Long, AdvertisingSource> advertisingSourceMap = advertisingSources.stream().collect(
+          Collectors.toMap(AdvertisingSource::getId, Function.identity()));
+
+      // Build map consulting status
+      List<ConsultingStatus> consultingStatuses = consultingStatusRepository.findAll();
+      Map<Long, ConsultingStatus> consultingStatusMap = consultingStatuses.stream().collect(
+          Collectors.toMap(ConsultingStatus::getId, Function.identity()));
+
+      // Build map clinic
+      List<Clinic> clinics = clinicRepository.findAll();
+      Map<Long, Clinic> clinicMap = clinics.stream().collect(
+          Collectors.toMap(Clinic::getId, Function.identity()));
+
+      // Build map doctor
+      List<Doctor> doctors = doctorRepository.findAll();
+      Map<Long, Doctor> doctorMap = doctors.stream().collect(
+          Collectors.toMap(Doctor::getId, Function.identity()));
+
+      // Build map clinic branch
+      Set<Long> clinicBranchIds = medicalRecords.stream().map(MedicalRecord::getClinicBranchId)
+          .collect(Collectors.toSet());
+      List<ClinicBranch> clinicBranches =
+          CollectionUtils.isEmpty(clinicBranchIds) ? new ArrayList<>()
+              : clinicBranchRepository.findAllById(clinicBranchIds);
+      Map<Long, ClinicBranch> clinicBranchMap = clinicBranches.stream().collect(
+          Collectors.toMap(ClinicBranch::getId, Function.identity()));
+
       medicalRecords.forEach(medicalRecord -> {
         MedicalRecordDto medicalRecordDto = new MedicalRecordDto();
         BeanUtils.copyProperties(medicalRecord, medicalRecordDto);
-        setValueForDto(medicalRecord, medicalRecordDto);
+
+        setValueForExportDto(medicalRecord,
+            medicalRecordDto,
+            patientMap.get(medicalRecord.getPatientId()),
+            provinceMap,
+            diseaseMap,
+            allMedicines,
+            advertisingSourceMap,
+            consultingStatusMap,
+            clinicMap,
+            doctorMap,
+            clinicBranchMap
+        );
+
         medicalRecordDtos.add(medicalRecordDto);
       });
       return medicalRecordDtos.stream()
@@ -666,6 +736,132 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
           .ofInstant(examinationDate.toInstant(), ZoneId.systemDefault());
       medicalRecord.setExaminationDate(localDateTime);
     }
+  }
+
+  private void setValueForExportDto(MedicalRecord medicalRecord,
+      MedicalRecordDto medicalRecordDto,
+      Patient patient,
+      Map<Long, Province> provinceMap,
+      Map<Long, Disease> diseaseMap,
+      Set<Medicine> allMedicines,
+      Map<Long, AdvertisingSource> advertisingSourceMap,
+      Map<Long, ConsultingStatus> consultingStatusMap,
+      Map<Long, Clinic> clinicMap,
+      Map<Long, Doctor> doctorMap,
+      Map<Long, ClinicBranch> clinicBranchMap) {
+
+    // TODO build PatientDto
+    // Region building patient
+    if (patient != null) {
+      PatientDto patientDto = new PatientDto();
+      BeanUtils.copyProperties(patient, patientDto);
+      Province province = provinceMap.get(patient.getProvinceCode());
+      if (province != null) {
+        patientDto.setProvince(province);
+      }
+
+      //TODO: build Pathologies
+      List<Long> pathologyIds = patientPathologyRepository
+          .findAllByPatientId(medicalRecord.getPatientId()).stream()
+          .map(PatientPathology::getPathologyId)
+          .collect(Collectors.toList());
+      if (!CollectionUtils.isEmpty(pathologyIds)) {
+        List<PathologyDto> pathologies = pathologyRepository.findAllById(pathologyIds).stream()
+            .map(pathology -> PathologyDto.builder()
+                .id(pathology.getId())
+                .name(pathology.getName())
+                .build()).collect(Collectors.toList());
+        patientDto.setPathologies(pathologies);
+      }
+      medicalRecordDto.setPatientDto(patientDto);
+    }
+    // Endregion
+
+    //TODO build diseaseDto
+    // Region building disease
+    Disease disease = diseaseMap.get(medicalRecord.getDiseaseId());
+    if (disease != null) {
+      DiseaseForMedicalRecordDto diseaseDto = DiseaseForMedicalRecordDto.builder()
+          .id(disease.getId()).name(disease.getName())
+          .build();
+
+      List<MedicalRecordMedicine> medicalRecordMedicines = medicalRecordMedicineRepository.
+          findAllByMedicalRecordId(medicalRecord.getId());
+
+      // Get all medicines of this medical record
+      List<Long> medicineIds = medicalRecordMedicines.stream().map(
+          MedicalRecordMedicine::getMedicineId).collect(Collectors.toList());
+
+      List<MedicineDto> medicineDtos = new ArrayList<>();
+
+      if (!CollectionUtils.isEmpty(medicineIds)) {
+        List<Medicine> medicines = allMedicines.stream()
+            .filter(medicine -> medicineIds.contains(medicine.getId())).collect(
+                Collectors.toList());
+
+        medicines.forEach(medicine -> {
+          MedicineDto medicineDto = MedicineDto.builder().id(medicine.getId())
+              .name(medicine.getName()).build();
+          medicalRecordMedicines.forEach(medicalRecordMedicine -> {
+            if (medicalRecordMedicine.getMedicineId().equals(medicine.getId())) {
+              medicineDto.setQty(Math.toIntExact(medicalRecordMedicine.getQty()));
+            }
+          });
+          medicineDtos.add(medicineDto);
+        });
+        diseaseDto.setMedicines(medicineDtos);
+      }
+      medicalRecordDto.setDiseaseDto(diseaseDto);
+    }
+    // Endregion
+
+    //TODO: build AdvertisingSourceDto
+    // Region building disease
+    AdvertisingSource advertisingSource = advertisingSourceMap
+        .get(medicalRecord.getAdvertisingSourceId());
+    if (advertisingSource != null) {
+      AdvertisingSourceDto advertisingSourceDto = AdvertisingSourceDto.builder()
+          .id(advertisingSource.getId()).name(advertisingSource.getName()).build();
+      medicalRecordDto.setAdvertisingSourceDto(advertisingSourceDto);
+    }
+    // Endregion
+
+    //TODO: build ClinicDto
+    // Region building clinic
+    Clinic clinic = clinicMap.get(medicalRecord.getClinicId());
+    if (clinic != null) {
+      ClinicDto clinicDto = ClinicDto.builder().id(clinic.getId()).address(clinic.getAddress())
+          .name(clinic.getName()).isActive(clinic.getIsActive())
+          .description(clinic.getDescription()).phone(clinic.getPhone()).build();
+      Doctor doctor = doctorMap.get(clinic.getDoctorId());
+      if (doctor != null) {
+        clinicDto.setDoctor(DoctorDto.builder().id(doctor.getId()).name(doctor.getName()).build());
+      }
+      medicalRecordDto.setClinicDto(clinicDto);
+    }
+    // Endregion
+
+    //TODO: build ConsultingStatusDto
+    // Region building consultingStatus
+    ConsultingStatus consultingStatus = consultingStatusMap
+        .get(medicalRecord.getConsultingStatusCode());
+    if (consultingStatus != null) {
+      ConsultingStatusDto consultingStatusDto = ConsultingStatusDto.builder()
+          .id(consultingStatus.getId()).code(consultingStatus.getCode())
+          .name(consultingStatus.getName()).build();
+      medicalRecordDto.setConsultingStatusDto(consultingStatusDto);
+    }
+    // Endregion
+
+    //TODO: build ClinicBranchDto
+    // Region building clinicBranch
+    ClinicBranch clinicBranch = clinicBranchMap.get(medicalRecord.getClinicBranchId());
+    if (clinicBranch != null) {
+      ClinicBranchDto clinicBranchDto = ClinicBranchDto.builder().id(clinicBranch.getId())
+          .name(clinicBranch.getName()).build();
+      medicalRecordDto.setClinicBranchDto(clinicBranchDto);
+    }
+    // Endregion
   }
 
 }
