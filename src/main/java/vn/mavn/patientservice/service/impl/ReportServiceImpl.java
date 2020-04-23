@@ -42,6 +42,7 @@ import vn.mavn.patientservice.service.ReportService;
 public class ReportServiceImpl implements ReportService {
 
   private static String[] columns = {"Ngày tư vấn", "Mã nhân viên tư vấn", "Loại bệnh", "Bệnh nhân",
+      "Mã bệnh nhân",
       "Tuổi", "Địa chỉ", "Số điện thoại", "Nguồn quảng cáo", "Tình trạng bệnh", "Tình trạng tư vấn",
       "Ghi chú", "Số Zalo", "Liên hệ khác", "Ngày khám", "Phòng khám", "Cơ sở khám", "Lần khám",
       "Số thang", "Loại thuốc", "Bài thuốc", "Tiền mặt", "Chuyển khoản", "CoD", "Ghi chú"};
@@ -181,7 +182,13 @@ public class ReportServiceImpl implements ReportService {
       ++cellNum;
       // endregion
 
-      // region Column 5: Tuổi bệnh nhân
+      // region Column 5: Mã bệnh nhân
+      row.createCell(cellNum).setCellValue(
+          medicalRecord.getPatientDto() != null ? medicalRecord.getPatientDto().getCode() : "");
+      ++cellNum;
+      // endregion
+
+      // region Column 6: Tuổi bệnh nhân
       row.createCell(cellNum, CellType.NUMERIC)
           .setCellValue(
               medicalRecord.getPatientDto() != null ? medicalRecord.getPatientDto().getAge()
@@ -189,7 +196,7 @@ public class ReportServiceImpl implements ReportService {
       ++cellNum;
       // endregion
 
-      // region Column 6: Địa chỉ bệnh nhân
+      // region Column 7: Địa chỉ bệnh nhân
       row.createCell(cellNum)
           .setCellValue(
               medicalRecord.getPatientDto() != null ? medicalRecord.getPatientDto().getAddress()
@@ -197,7 +204,7 @@ public class ReportServiceImpl implements ReportService {
       ++cellNum;
       // endregion
 
-      // region Column 7: Số điện thoại
+      // region Column 8: Số điện thoại
       Cell phoneNumber = row.createCell(cellNum);
       phoneNumber.setCellValue(
           medicalRecord.getPatientDto() != null ? medicalRecord.getPatientDto().getPhone()
@@ -206,31 +213,31 @@ public class ReportServiceImpl implements ReportService {
       ++cellNum;
       // endregion
 
-      // region Column 8: Nguồn Quảng cáo
+      // region Column 9: Nguồn Quảng cáo
       row.createCell(cellNum).setCellValue(
           medicalRecord.getAdvertisingSourceDto() != null ? medicalRecord.getAdvertisingSourceDto()
               .getName() : "");
       ++cellNum;
       // endregion
 
-      // region Column 9: Tình trạng bệnh
+      // region Column 10: Tình trạng bệnh
       row.createCell(cellNum).setCellValue(medicalRecord.getDiseaseStatus());
       ++cellNum;
       // endregion
 
-      // region Column 10 Tình trạng tư vấn
+      // region Column 11 Tình trạng tư vấn
       row.createCell(cellNum).setCellValue(
           medicalRecord.getConsultingStatusDto() != null ? medicalRecord.getConsultingStatusDto()
               .getName() : "");
       ++cellNum;
       // endregion
 
-      // region Column 11: Ghi chú
+      // region Column 12: Ghi chú
       row.createCell(cellNum).setCellValue(medicalRecord.getNote());
       ++cellNum;
       // endregion
 
-      // region Column 12: SDT Zalo
+      // region Column 13: SDT Zalo
       Cell zaloPhone = row.createCell(cellNum);
       zaloPhone.setCellValue(
           medicalRecord.getPatientDto() != null ? medicalRecord.getPatientDto().getZaloPhone()
@@ -239,7 +246,7 @@ public class ReportServiceImpl implements ReportService {
       ++cellNum;
       // endregion
 
-      // region Column 13: SDT khác
+      // region Column 14: SDT khác
       Cell otherContact = row.createCell(cellNum);
       otherContact.setCellValue(
           medicalRecord.getPatientDto() != null ? medicalRecord.getPatientDto().getOtherPhone()
@@ -248,52 +255,52 @@ public class ReportServiceImpl implements ReportService {
       ++cellNum;
       // endregion
 
-      // region Column 14: Ngày khám
+      // region Column 15: Ngày khám
       Cell examDateCell = row.createCell(cellNum);
       examDateCell.setCellValue(medicalRecord.getExaminationDate());
       examDateCell.setCellStyle(dateCellStyle);
       ++cellNum;
       // endregion
 
-      // region Column 15: phòng khám
+      // region Column 16: phòng khám
       row.createCell(cellNum)
           .setCellValue(
               medicalRecord.getClinicDto() != null ? medicalRecord.getClinicDto().getName() : "");
       ++cellNum;
       // endregion
 
-      // region Column 16: Cơ sở khám
+      // region Column 17: Cơ sở khám
       row.createCell(cellNum).setCellValue(
           medicalRecord.getClinicBranchDto() != null
               ? medicalRecord.getClinicBranchDto().getName() : "");
       ++cellNum;
       // endregion
 
-      // region Column 17: Lần khám
+      // region Column 18: Lần khám
       row.createCell(cellNum).setCellValue(
           medicalRecord.getExaminationTimes() != null ? medicalRecord.getExaminationTimes()
               : Long.valueOf(0));
       ++cellNum;
       // endregion
 
-      // region Column 18: Số thang
+      // region Column 19: Số thang
       row.createCell(cellNum, CellType.NUMERIC).setCellValue(
           medicalRecord.getRemedyAmount() != null ? medicalRecord.getRemedyAmount()
               : Long.valueOf(0));
       ++cellNum;
       // endregion
 
-      // region Column 19: Loại thuốc
+      // region Column 20: Loại thuốc
       row.createCell(cellNum).setCellValue(medicalRecord.getRemedyType());
       ++cellNum;
       // endregion
 
-      // region Column 20: Bài thuốc
+      // region Column 21: Bài thuốc
       row.createCell(cellNum).setCellValue(medicalRecord.getRemedies());
       ++cellNum;
       // endregion
 
-      // region Column 21: Tổng tiền mặt
+      // region Column 22: Tổng tiền mặt
       Cell totalAmount = row.createCell(cellNum, CellType.NUMERIC);
       totalAmount.setCellValue(
           medicalRecord.getTotalAmount() != null ? medicalRecord.getTotalAmount().doubleValue()
@@ -302,7 +309,7 @@ public class ReportServiceImpl implements ReportService {
       ++cellNum;
       // endregion
 
-      // region Column 22: Chuyển khoản
+      // region Column 23: Chuyển khoản
       Cell transfer = row.createCell(cellNum, CellType.NUMERIC);
       transfer.setCellValue(
           medicalRecord.getTransferAmount() != null ? medicalRecord.getTransferAmount()
@@ -311,7 +318,7 @@ public class ReportServiceImpl implements ReportService {
       ++cellNum;
       // endregion
 
-      // region Column 23: CoD
+      // region Column 24: CoD
       Cell cod = row.createCell(cellNum, CellType.NUMERIC);
       cod.setCellValue(
           medicalRecord.getCodAmount() != null ? medicalRecord.getCodAmount().doubleValue()
@@ -320,7 +327,7 @@ public class ReportServiceImpl implements ReportService {
       ++cellNum;
       // endregion
 
-      // region Column 24: Ghi chú mở rộng
+      // region Column 25: Ghi chú mở rộng
       row.createCell(cellNum).setCellValue(medicalRecord.getExtraNote());
       ++cellNum;
       // endregion
@@ -353,7 +360,7 @@ public class ReportServiceImpl implements ReportService {
       // region Sum of amount on cash
       int cashColumnIndex = titleIndexMap.get("Tiền mặt");
       Cell cashSum = sumRow.createCell(cashColumnIndex);
-      cashSum.setCellFormula("sum(U2:U" + (lastRow + 1) + ")");
+      cashSum.setCellFormula("sum(V2:V" + (lastRow + 1) + ")");
       System.out.println(cashSum.getCellFormula());
       cashSum.setCellStyle(sumCellStyle);
       // endregion
@@ -361,7 +368,7 @@ public class ReportServiceImpl implements ReportService {
       // region Sum of transferred amount
       int transferredIndex = titleIndexMap.get("Chuyển khoản");
       Cell transferredSum = sumRow.createCell(transferredIndex);
-      transferredSum.setCellFormula("sum(V2:V" + (lastRow + 1) + ")");
+      transferredSum.setCellFormula("sum(W2:W" + (lastRow + 1) + ")");
       System.out.println(transferredSum.getCellFormula());
       transferredSum.setCellStyle(sumCellStyle);
       // endregion
@@ -369,7 +376,7 @@ public class ReportServiceImpl implements ReportService {
       // region Sum of CODd
       int codIndex = titleIndexMap.get("CoD");
       Cell codSum = sumRow.createCell(codIndex);
-      codSum.setCellFormula("sum(W2:W" + (lastRow + 1) + ")");
+      codSum.setCellFormula("sum(X2:X" + (lastRow + 1) + ")");
       System.out.println(codSum.getCellFormula());
       codSum.setCellStyle(sumCellStyle);
       // endregion
