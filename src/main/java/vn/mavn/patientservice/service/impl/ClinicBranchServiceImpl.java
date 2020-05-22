@@ -44,8 +44,10 @@ public class ClinicBranchServiceImpl implements ClinicBranchService {
     clinicBranch.setCreatedBy(loggedInUserId);
     clinicBranch.setUpdatedBy(loggedInUserId);
     clinicBranch.setIsActive(true);
+    clinicBranchRepository.save(clinicBranch);
 
-    return clinicBranchRepository.save(clinicBranch);
+    return clinicBranch;
+
   }
 
   @Override
