@@ -153,9 +153,10 @@ class DoctorServiceImplTest {
                 .thenReturn(Optional.of(doctor()));
         List<Clinic> clinics = clinicRepository.findAllClinicById(Mockito.anyLong());
         Assertions.assertNotNull(clinics);
+        Mockito.when(clinicRepository.findAllClinicById(Mockito.anyLong())).thenReturn(Arrays.asList(clinic()));
         List<DoctorDto.ClinicDto> clinicDto = new ArrayList<>();
         clinics.forEach(clinic-> {
-            clinicDto.add(Mockito.any());
+            clinicDto.add(DoctorDto.ClinicDto.builder().id(clinic.getId()).name(clinic.getName()).build());
         });
 
         DoctorDto doctorDto = doctorService.findById(1L);
