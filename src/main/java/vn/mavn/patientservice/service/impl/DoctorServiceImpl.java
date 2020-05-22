@@ -66,7 +66,8 @@ public class DoctorServiceImpl implements DoctorService {
     Long loggedInUserId = Long.valueOf(TokenUtils.getUserIdFromToken(httpServletRequest));
     doctor.setUpdatedBy(loggedInUserId);
     doctor.setIsActive(true);
-    return doctorRepository.save(doctor);
+    doctorRepository.save(doctor);
+    return doctor;
   }
 
   @Override
